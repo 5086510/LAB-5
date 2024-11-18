@@ -2,8 +2,6 @@
 #include <vector>
 #include <string>
 
-// Aliases for convenience
-// ELEM: Alias for a vector of elements
 template <class T>
 using ELEM = std::vector<T>;
 
@@ -39,56 +37,57 @@ void initVec(VEC<T>& v, ELEM<T>&& cons) {
     v.push_back(std::move(cons));
 }
 
-// Function to print the contents of a vector of vectors (VEC<T>)
+
 template <class T>
 void printVec(VEC<T> &v) {
-    for (const auto &elem : v) {
-        std::cout << "[";
-        for (size_t j = 0; j < elem.size(); j++) {
-            std::cout << elem[j];
-            if (j < elem.size() - 1) std::cout << " , "; // Print commas between elements
-        }
-        std::cout << "]" << std::endl;
-    }
-}
-
-// Function to print a zipped vector with optional double zipping
-template <class T>
-void printZippedVec(VEC<T>& v, bool doubleZip = false) {
-    if (v.empty()) return; // Handle empty vector case
-
-    const auto& elem = v[0];
     std::cout << "[";
-
-    if (doubleZip) {
-        // Process in groups of four
-        for (size_t i = 0; i + 3 < elem.size(); i += 4) {
-            if (i > 0) std::cout << " , ";
-            std::cout << "(" << elem[i] << " " << elem[i + 2] << " " << elem[i + 1] << " " << elem[i + 3] << ")";
+    if (v.size() > 1) {
+        for(size_t i = 0; i < v.size(); i++) {
+            std::cout << "(";
+            for(size_t j = 0; j < v[i].size(); j++) {
+                std::cout << v[i][j];
+                if(j < v[i].size() - 1) std::cout << " ";
+            }
+            std::cout << " )";
+            if(i < v.size() - 1) std::cout << " , ";
         }
     } else {
-        // Process in pairs
-        for (size_t i = 0; i + 1 < elem.size(); i += 2) {
-            if (i > 0) std::cout << " , ";
-            std::cout << "(" << elem[i] << " " << elem[i + 1] << ")";
+        // Regular vector print
+        for(const auto& elem : v[0]) {
+            std::cout << elem;
+            if(&elem != &v[0].back()) std::cout << " , ";
         }
     }
-
-    std::cout << "]" << std::endl;
+    std::cout << " ]" << std::endl;
 }
 
-// Function to zip two vectors (v and w) into one VEC<T> containing pairs of elements from both vectors
+// Zip function, got help by friend
 template<class T>
 VEC<T> zip(VEC<T> &v, VEC<T> &w) {
     VEC<T> result;
-    ELEM<T> zipped;
-    for (size_t i = 0; i < v[0].size() && i < w[0].size(); i++) {
-        zipped.push_back(v[0][i]);
-        zipped.push_back(w[0][i]);
+    // Check if we're doing a second zip (v has multiple elements)
+    if (v.size() > 1) {
+        // Second zip operation
+        for(const auto& pair : v) {
+            ELEM<T> quad;  // Changed from triplet to quad
+            quad.push_back(pair[0]);
+            quad.push_back(pair[1]);
+            quad.push_back(pair[0]);
+            quad.push_back(pair[1]);  // Add one more copy
+            result.push_back(quad);
+        }
+    } else {
+        // First zip operation
+        for(size_t i = 0; i < v[0].size(); i++) {
+            ELEM<T> pair;
+            pair.push_back(v[0][i]);
+            pair.push_back(w[0][i]);
+            result.push_back(pair);
+        }
     }
-    result.push_back(zipped);
     return result;
 }
+
 
 // Generate a vector of size N by applying function f
 template <class T>
@@ -164,11 +163,11 @@ int main() {
     std::cout << std::string(10, '*') << std::endl;
 
     VEC<int> z = zip(v, w);
-    printZippedVec(z);
+    printVec(z);
     std::cout << std::string(10, '*') << std::endl;
 
     VEC<int> x = zip(z, z); 
-    printZippedVec(x, true);
+    printVec(x);
     std::cout << std::string(10, '*') << std::endl;
 
     VEC<int> a = generate(10, f);
